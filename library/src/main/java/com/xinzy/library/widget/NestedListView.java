@@ -103,8 +103,7 @@ public class NestedListView extends LinearLayout
                 removeViews(size, childrenCount - size);
                 while (cacheSize > size)
                 {
-                    mCachedItemViews.remove(cacheSize - 1);
-                    cacheSize --;
+                    mCachedItemViews.remove(--cacheSize);
                 }
             }
 

@@ -70,7 +70,13 @@ public abstract class CommonAdapter<T> extends BaseAdapter
 
     public void replace(List<T> lists)
     {
-        mDatas = lists;
+        if (mDatas != null)
+        {
+            mDatas.clear();
+        } else
+        {
+            mDatas = lists;
+        }
 
         synchronized (mLock)
         {
@@ -134,6 +140,9 @@ public abstract class CommonAdapter<T> extends BaseAdapter
             {
                 notifyDataSetChanged();
             }
+        } else
+        {
+            add(t);
         }
     }
 }

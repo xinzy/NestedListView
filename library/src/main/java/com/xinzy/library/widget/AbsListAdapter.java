@@ -73,7 +73,13 @@ public abstract class AbsListAdapter<T> extends BaseAdapter
 
     public void replace(List<T> lists)
     {
-        mDatas = lists;
+        if (mDatas != null)
+        {
+            mDatas.clear();
+        } else
+        {
+            mDatas = lists;
+        }
 
         synchronized (mLock)
         {
@@ -137,6 +143,9 @@ public abstract class AbsListAdapter<T> extends BaseAdapter
             {
                 notifyDataSetChanged();
             }
+        } else
+        {
+            add(t);
         }
     }
 
