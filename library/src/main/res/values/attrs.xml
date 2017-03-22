@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="NestedGridView">
+        <attr name="numColumns" format="integer"/>
+        <attr name="verticalSpacing" format="dimension" />
+        <attr name="horizontalSpacing" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="NestedAdapterView">
+
+    </declare-styleable>
+
+</resources>

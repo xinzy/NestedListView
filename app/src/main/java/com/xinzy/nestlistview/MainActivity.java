@@ -26,6 +26,11 @@ public class MainActivity extends AppCompatActivity
         startActivity(new Intent(this, NestedActivity.class));
     }
 
+    public void onNestedGrid(View v)
+    {
+        startActivity(new Intent(this, NestedGridActivity.class));
+    }
+
     public static List<String> getDatas()
     {
         return new ArrayList<>(Arrays.asList(DATAS));

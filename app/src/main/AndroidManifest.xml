@@ -15,8 +15,12 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".NestedActivity">
-        </activity>
+        <activity
+            android:name=".NestedActivity"
+            android:label="NestedListView" />
+        <activity
+            android:name=".NestedGridActivity"
+            android:label="NestedGridView" />
     </application>
 
 </manifest>

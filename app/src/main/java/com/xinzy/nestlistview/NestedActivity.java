@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import com.xinzy.library.widget.NestedListView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class NestedActivity extends AppCompatActivity implements NestedListView.OnItemClickListener,
@@ -43,6 +44,21 @@ public class NestedActivity extends AppCompatActivity implements NestedListView.
         mAdapter.remove(0);
     }
 
+    public void onClear(View v)
+    {
+        mAdapter.clear();
+    }
+
+    public void onReplace(View v)
+    {
+        List<String> list = new ArrayList<>();
+        list.add("New");
+        list.add("Old");
+        list.add("Good");
+
+        mAdapter.replace(list);
+    }
+
     @Override
     public void onItemClick(NestedListView listView, View itemView, int position)
     {
@@ -55,12 +71,12 @@ public class NestedActivity extends AppCompatActivity implements NestedListView.
         Log.w(TAG, "onItemLongClick: position = " + position);
     }
 
-    private class Adapter extends NestedListView.NestedAdapter<String>
+    private class Adapter extends NestedListView.NestedListAdapter<String>
     {
 
-        public Adapter(List<String> mDatas)
+        public Adapter(List<String> datas)
         {
-            super(mDatas);
+            super(datas);
         }
 
         @Override

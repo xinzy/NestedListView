@@ -1,65 +1,85 @@
 package com.xinzy.library.widget;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.LinearLayout;
+import android.view.ViewGroup;
+
+import com.xinzy.library.R;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by xinzy on 16/12/18.
+ * Created by Xinzy on 2017-03-21.
+ *
  */
-public class NestedListView extends LinearLayout
+public class NestedGridView extends ViewGroup
 {
-    private static final String TAG = "NestedListView";
+    private static final String TAG = "NestedGridView";
     private static final boolean DEBUG = true;
 
     protected Context mContext;
-    private NestedListAdapter mAdapter;
+
+    private int mColumnNumber;
+    private int mVerticalSpacing;
+    private int mHorizontalSpacing;
+
+    private int mWidth;
+    private int mHeight;
+
+    private int mPaddingLeft;
+    private int mPaddingRight;
+    private int mPaddingTop;
+    private int mPaddingBottom;
+
+    private NestedGridAdapter mAdapter;
     private List<View> mCachedItemViews;
     private LayoutInflater mInflater;
 
     private OnItemClickListener mOnItemClickListener;
     private OnItemLongClickListener mOnItemLongClickListener;
 
-    public interface OnItemClickListener
+    public NestedGridView(Context context)
     {
-        void onItemClick(NestedListView parent, View itemView, int position);
+        this(context, null);
     }
 
-    public interface OnItemLongClickListener
+    public NestedGridView(Context context, AttributeSet attrs)
     {
-        void onItemLongClick(NestedListView parent, View itemView, int position);
+        this(context, attrs, 0);
     }
 
-    public NestedListView(Context context)
-    {
-        super(context);
-        init(context);
-    }
-
-    public NestedListView(Context context, AttributeSet attrs)
-    {
-        super(context, attrs);
-        init(context);
-    }
-
-    public NestedListView(Context context, AttributeSet attrs, int defStyleAttr)
+    public NestedGridView(Context context, AttributeSet attrs, int defStyleAttr)
     {
         super(context, attrs, defStyleAttr);
-        init(context);
+        init(context, attrs);
     }
 
-    private void init(Context context)
+    private void init(Context context, AttributeSet attrs)
     {
         mContext = context;
-        setOrientation(VERTICAL);
-        mInflater = LayoutInflater.from(mContext);
         mCachedItemViews = new ArrayList<>();
+        mInflater = LayoutInflater.from(mContext);
+
+        TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.NestedGridView);
+        mColumnNumber = ta.getInt(R.styleable.NestedGridView_numColumns, 1);
+        mVerticalSpacing = ta.getDimensionPixelSize(R.styleable.NestedGridView_verticalSpacing, 0);
+        mHorizontalSpacing = ta.getDimensionPixelSize(R.styleable.NestedGridView_horizontalSpacing, 0);
+        ta.recycle();
+    }
+
+    public void setAdapter(NestedGridAdapter adapter)
+    {
+        this.mAdapter = adapter;
+        if (mAdapter != null)
+        {
+            mAdapter.setGridView(this);
+            mAdapter.notifyDataSetChanged();
+        }
     }
 
     public void setOnItemClickListener(OnItemClickListener onItemClickListener)
@@ -72,26 +92,93 @@ public class NestedListView extends LinearLayout
         this.mOnItemLongClickListener = onItemLongClickListener;
     }
 
-    public NestedListAdapter getAdapter()
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
     {
-        return mAdapter;
+        int width = MeasureSpec.getSize(widthMeasureSpec);
+
+        mPaddingLeft = getPaddingStart();
+        mPaddingRight = getPaddingEnd();
+        mPaddingTop = getPaddingTop();
+        mPaddingBottom = getPaddingBottom();
+
+        int contentWidth = width - mPaddingLeft - mPaddingRight;
+        final int itemWidth = (contentWidth - (mColumnNumber - 1) * mHorizontalSpacing) / mColumnNumber;
+        int childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(itemWidth, MeasureSpec.EXACTLY);
+
+        final int childrenCount = getChildCount();
+        final int lines = (int) Math.ceil(childrenCount * 1f / mColumnNumber);
+        debug("onMeasure: childrenCount = " + childrenCount + "; lines = " + lines);
+
+        int height = mPaddingTop + mPaddingBottom + (lines - 1) * mVerticalSpacing;
+        for (int i = 0; i < lines; i++)
+        {
+            int lineHeight = 0;
+            for (int j = 0; j < mColumnNumber; j++)
+            {
+                int index = i * mColumnNumber + j;
+                if (index < childrenCount)
+                {
+                    View child = getChildAt(index);
+                    LayoutParams lp = child.getLayoutParams();
+                    child.measure(childWidthMeasureSpec, MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.EXACTLY));
+                    int itemHeight = child.getMeasuredHeight();
+                    if (itemHeight > lineHeight)
+                    {
+                        lineHeight = itemHeight;
+                    }
+                    debug("child" + index + " height = " + itemHeight + "; width = " + child.getMeasuredWidth());
+                }
+            }
+            height += lineHeight;
+        }
+        setMeasuredDimension(width, height);
+        mWidth = width;
+        mHeight = height;
+        debug("mWidth = " + mWidth + "; mHeight = " + mHeight);
     }
 
-    public void setAdapter(NestedListAdapter adapter)
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b)
     {
-        mAdapter = adapter;
-        if (mAdapter != null)
+        final int contentWidth = mWidth - mPaddingLeft - mPaddingRight;
+        final int itemWidth = contentWidth / mColumnNumber;
+
+        final int childrenCount = getChildCount();
+        final int lines = (int) Math.ceil(childrenCount * 1f / mColumnNumber);
+
+        int height = mPaddingTop;
+        for (int i = 0; i < lines; i++)
         {
-            mAdapter.setListView(this);
+            int lineHeight = 0;
+            for (int j = 0; j < mColumnNumber; j++)
+            {
+                int index = i * mColumnNumber + j;
+                if (index < childrenCount)
+                {
+                    View child = getChildAt(index);
+                    int itemHeight = child.getMeasuredHeight();
+
+                    final int left = mPaddingLeft + j * itemWidth + j * mHorizontalSpacing;
+                    final int right = left + itemWidth;
+                    final int top = height;
+                    final int bottom = height + itemHeight;
+                    child.layout(left, top, right, bottom);
+
+                    if (itemHeight > lineHeight)
+                    {
+                        lineHeight = itemHeight;
+                    }
+                }
+            }
+            height += lineHeight + mVerticalSpacing;
         }
-        updateUI();
     }
 
     public void updateUI()
     {
         if (mAdapter == null || mAdapter.getCount() == 0)
         {
-            mCachedItemViews.clear();
             removeAllViews();
         } else
         {
@@ -130,20 +217,28 @@ public class NestedListView extends LinearLayout
         }
     }
 
-    public static abstract class NestedListAdapter<T>
+    private void debug(String msg)
+    {
+        if (DEBUG)
+        {
+            Log.d(TAG, msg);
+        }
+    }
+
+    public static abstract class NestedGridAdapter<T>
     {
         private final Object   mLock = new Object();
-        private List<T>        mDatas;
-        private NestedListView mListView;
+        private List<T> mDatas;
+        private NestedGridView mGridView;
 
-        public NestedListAdapter(List<T> mDatas)
+        public NestedGridAdapter(List<T> datas)
         {
-            this.mDatas = mDatas;
+            this.mDatas = datas;
         }
 
-        void setListView(NestedListView mListView)
+        void setGridView(NestedGridView view)
         {
-            this.mListView = mListView;
+            this.mGridView = view;
         }
 
         public int getCount()
@@ -163,7 +258,7 @@ public class NestedListView extends LinearLayout
 
         public abstract int getLayout();
 
-        public abstract void onBindData(View convertView, T item, int position);
+        protected abstract void onBindData(View convertView, T item, int position);
 
         public void clear()
         {
@@ -254,11 +349,21 @@ public class NestedListView extends LinearLayout
 
         public void notifyDataSetChanged()
         {
-            if (mListView != null)
+            if (mGridView != null)
             {
-                mListView.updateUI();
+                mGridView.updateUI();
             }
         }
+    }
+
+    public interface OnItemClickListener
+    {
+        void onItemClick(NestedGridView parent, View itemView, int position);
+    }
+
+    public interface OnItemLongClickListener
+    {
+        void onItemLongClick(NestedGridView parent, View itemView, int position);
     }
 
     private class OnItemClick implements OnClickListener
@@ -277,7 +382,7 @@ public class NestedListView extends LinearLayout
         {
             if (mOnItemClickListener != null)
             {
-                mOnItemClickListener.onItemClick(NestedListView.this, mConvertView, mPosition);
+                mOnItemClickListener.onItemClick(NestedGridView.this, mConvertView, mPosition);
             }
         }
     }
@@ -298,18 +403,10 @@ public class NestedListView extends LinearLayout
         {
             if (mOnItemLongClickListener != null)
             {
-                mOnItemLongClickListener.onItemLongClick(NestedListView.this, mConvertView, mPosition);
+                mOnItemLongClickListener.onItemLongClick(NestedGridView.this, mConvertView, mPosition);
                 return true;
             }
             return false;
-        }
-    }
-
-    private void debug(String msg)
-    {
-        if (DEBUG)
-        {
-            Log.d(TAG, "debug: " + msg);
         }
     }
 }
