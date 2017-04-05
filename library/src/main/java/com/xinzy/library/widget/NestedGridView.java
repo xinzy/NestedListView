@@ -15,12 +15,11 @@ import java.util.List;
 
 /**
  * Created by Xinzy on 2017-03-21.
- *
  */
 public class NestedGridView extends ViewGroup
 {
     private static final String TAG = "NestedGridView";
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     protected Context mContext;
 
@@ -72,6 +71,20 @@ public class NestedGridView extends ViewGroup
         ta.recycle();
     }
 
+    public void setColumnNumber(int columnNumber)
+    {
+        if (columnNumber > 0)
+        {
+            this.mColumnNumber = columnNumber;
+            requestLayout();
+        }
+    }
+
+    public int getColumnNumber()
+    {
+        return mColumnNumber;
+    }
+
     public void setAdapter(NestedGridAdapter adapter)
     {
         this.mAdapter = adapter;
@@ -80,6 +93,11 @@ public class NestedGridView extends ViewGroup
             mAdapter.setGridView(this);
             mAdapter.notifyDataSetChanged();
         }
+    }
+
+    public NestedGridAdapter getAdapter()
+    {
+        return mAdapter;
     }
 
     public void setOnItemClickListener(OnItemClickListener onItemClickListener)
@@ -121,7 +139,15 @@ public class NestedGridView extends ViewGroup
                 {
                     View child = getChildAt(index);
                     LayoutParams lp = child.getLayoutParams();
-                    child.measure(childWidthMeasureSpec, MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.EXACTLY));
+                    int childHeightMeasureSpec;
+                    if (lp.height == LayoutParams.WRAP_CONTENT || lp.height == LayoutParams.MATCH_PARENT)
+                    {
+                        childHeightMeasureSpec = MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.UNSPECIFIED);
+                    } else
+                    {
+                        childHeightMeasureSpec = MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.EXACTLY);
+                    }
+                    child.measure(childWidthMeasureSpec, childHeightMeasureSpec);
                     int itemHeight = child.getMeasuredHeight();
                     if (itemHeight > lineHeight)
                     {
@@ -227,7 +253,7 @@ public class NestedGridView extends ViewGroup
 
     public static abstract class NestedGridAdapter<T>
     {
-        private final Object   mLock = new Object();
+        private final Object mLock = new Object();
         private List<T> mDatas;
         private NestedGridView mGridView;
 

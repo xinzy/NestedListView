@@ -10,6 +10,7 @@ import com.xinzy.library.widget.NestedGridView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class NestedGridActivity extends AppCompatActivity implements NestedGridView.OnItemClickListener
 {
@@ -58,6 +59,12 @@ public class NestedGridActivity extends AppCompatActivity implements NestedGridV
         list.add("Good");
 
         mAdapter.replace(list);
+    }
+
+    public void onCol(View v)
+    {
+        int num = new Random().nextInt(5);
+        mGridView.setColumnNumber(num);
     }
 
     class Adapter extends NestedGridView.NestedGridAdapter<String>

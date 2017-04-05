@@ -44,6 +44,13 @@
                 android:layout_weight="1"
                 android:onClick="onReplace"
                 android:text="替换"/>
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="onCol"
+                android:text="列数"/>
         </LinearLayout>
 
         <com.xinzy.library.widget.NestedGridView
