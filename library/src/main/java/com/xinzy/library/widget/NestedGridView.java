@@ -168,7 +168,7 @@ public class NestedGridView extends ViewGroup
     protected void onLayout(boolean changed, int l, int t, int r, int b)
     {
         final int contentWidth = mWidth - mPaddingLeft - mPaddingRight;
-        final int itemWidth = contentWidth / mColumnNumber;
+        final int itemWidth = (contentWidth - mHorizontalSpacing * (mColumnNumber - 1)) / mColumnNumber;
 
         final int childrenCount = getChildCount();
         final int lines = (int) Math.ceil(childrenCount * 1f / mColumnNumber);
